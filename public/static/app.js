@@ -7,6 +7,11 @@ let currentAudioBlob = null;
 let uploadedFile = null;
 let currentStream = null;
 let audioSource = 'microphone'; // 'microphone', 'tab', 'system'
+let transcriptionData = null;
+let currentProjects = [];
+let selectedProjectId = 1;
+let selectedFormat = 'internal';
+let selectedColor = '#3b82f6';
 
 // DOM elements
 const recordTab = document.getElementById('recordTab');
@@ -406,15 +411,10 @@ async function transcribeAudio(audioBlob, filename = 'recording.webm') {
       return;
     }
 
-    // Display results
+    // Store transcription data and show format modal
     transcriptionData = data;
-    transcriptionText.textContent = data.text;
-    languageInfo.textContent = `Language: ${data.language || 'Unknown'}`;
-    durationInfo.textContent = `Duration: ${formatDuration(data.duration)}`;
-    resultsSection.classList.remove('hidden');
-    
-    // Scroll to results
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    hideLoading();
+    showFormatModal();
 
   } catch (error) {
     showError('Transcription failed: ' + error.message);
@@ -467,8 +467,9 @@ copyButton.addEventListener('click', () => {
 
 downloadTxt.addEventListener('click', () => {
   if (transcriptionData) {
-    const blob = new Blob([transcriptionData.text], { type: 'text/plain' });
-    downloadFile(blob, 'transcription.txt');
+    const content = transcriptionData.formattedOutput || transcriptionData.text;
+    const blob = new Blob([content], { type: 'text/plain' });
+    downloadFile(blob, 'transcript.txt');
   }
 });
 
@@ -518,3 +519,253 @@ fetch('/api/health')
     }
   })
   .catch(err => console.error('Health check failed:', err));
+
+// ============================================
+// PROJECT MANAGEMENT
+// ============================================
+
+// New DOM elements for project management
+const projectSelect = document.getElementById('projectSelect');
+const newProjectBtn = document.getElementById('newProjectBtn');
+const newProjectModal = document.getElementById('newProjectModal');
+const newProjectName = document.getElementById('newProjectName');
+const newProjectDesc = document.getElementById('newProjectDesc');
+const cancelProjectBtn = document.getElementById('cancelProjectBtn');
+const createProjectBtn = document.getElementById('createProjectBtn');
+
+// Format modal elements
+const formatModal = document.getElementById('formatModal');
+const formatOptionBtns = document.querySelectorAll('.format-option-btn');
+const meetingTitle = document.getElementById('meetingTitle');
+const meetingAttendees = document.getElementById('meetingAttendees');
+const meetingCompany = document.getElementById('meetingCompany');
+const meetingDate = document.getElementById('meetingDate');
+const cancelFormatBtn = document.getElementById('cancelFormatBtn');
+const saveTranscriptBtn = document.getElementById('saveTranscriptBtn');
+
+// Color selection
+const colorBtns = document.querySelectorAll('.color-btn');
+
+// Load projects on page load
+async function loadProjects() {
+  try {
+    const response = await fetch('/api/projects');
+    const data = await response.json();
+    
+    if (data.projects) {
+      currentProjects = data.projects;
+      updateProjectSelect();
+    }
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+  }
+}
+
+function updateProjectSelect() {
+  projectSelect.innerHTML = '';
+  currentProjects.forEach(project => {
+    const option = document.createElement('option');
+    option.value = project.id;
+    option.textContent = `📁 ${project.name}`;
+    if (project.id === selectedProjectId) {
+      option.selected = true;
+    }
+    projectSelect.appendChild(option);
+  });
+}
+
+// Project selection
+projectSelect.addEventListener('change', (e) => {
+  selectedProjectId = parseInt(e.target.value);
+});
+
+// New project modal
+newProjectBtn.addEventListener('click', () => {
+  newProjectModal.classList.remove('hidden');
+  newProjectName.value = '';
+  newProjectDesc.value = '';
+  selectedColor = '#3b82f6';
+  
+  // Reset color buttons
+  colorBtns.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.color === selectedColor) {
+      btn.classList.add('active');
+    }
+  });
+});
+
+cancelProjectBtn.addEventListener('click', () => {
+  newProjectModal.classList.add('hidden');
+});
+
+// Color selection
+colorBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    colorBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedColor = btn.dataset.color;
+  });
+});
+
+// Create new project
+createProjectBtn.addEventListener('click', async () => {
+  const name = newProjectName.value.trim();
+  
+  if (!name) {
+    showError('Please enter a project name');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        description: newProjectDesc.value.trim(),
+        color: selectedColor
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      newProjectModal.classList.add('hidden');
+      await loadProjects();
+      selectedProjectId = data.projectId;
+      updateProjectSelect();
+    } else {
+      showError('Failed to create project');
+    }
+  } catch (error) {
+    console.error('Create project error:', error);
+    showError('Failed to create project');
+  }
+});
+
+// Format selection modal
+formatOptionBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    formatOptionBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedFormat = btn.dataset.format;
+  });
+});
+
+cancelFormatBtn.addEventListener('click', () => {
+  formatModal.classList.add('hidden');
+});
+
+// Show format modal after transcription
+function showFormatModal() {
+  // Set default date to today
+  meetingDate.valueAsDate = new Date();
+  
+  // Clear form
+  meetingTitle.value = '';
+  meetingAttendees.value = '';
+  meetingCompany.value = '';
+  
+  // Reset format selection
+  formatOptionBtns.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.format === 'internal') {
+      btn.classList.add('active');
+    }
+  });
+  selectedFormat = 'internal';
+  
+  formatModal.classList.remove('hidden');
+}
+
+// Save transcript with formatting
+saveTranscriptBtn.addEventListener('click', async () => {
+  const title = meetingTitle.value.trim();
+  
+  if (!title) {
+    showError('Please enter a meeting title');
+    return;
+  }
+  
+  if (!transcriptionData) {
+    showError('No transcription data available');
+    return;
+  }
+  
+  try {
+    showLoading();
+    
+    // Prepare meeting info
+    const meetingInfo = {
+      title,
+      attendees: meetingAttendees.value.trim(),
+      company: meetingCompany.value.trim(),
+      date: meetingDate.value || new Date().toISOString().split('T')[0]
+    };
+    
+    // Format the transcript
+    const formatResponse = await fetch('/api/format', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcriptData: {
+          text: transcriptionData.text,
+          language: transcriptionData.language,
+          duration: transcriptionData.duration,
+          segments: transcriptionData.segments
+        },
+        meetingInfo,
+        formatType: selectedFormat
+      })
+    });
+    
+    const formatData = await formatResponse.json();
+    
+    if (!formatData.success) {
+      throw new Error('Formatting failed');
+    }
+    
+    // Save to database
+    const saveResponse = await fetch('/api/transcripts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project_id: selectedProjectId,
+        title,
+        transcript_text: transcriptionData.text,
+        language: transcriptionData.language,
+        duration: transcriptionData.duration,
+        audio_source: audioSource,
+        format_type: selectedFormat,
+        formatted_output: formatData.formatted,
+        segments: transcriptionData.segments
+      })
+    });
+    
+    const saveData = await saveResponse.json();
+    
+    if (saveData.success) {
+      formatModal.classList.add('hidden');
+      hideLoading();
+      
+      // Show success message
+      transcriptionText.textContent = formatData.formatted;
+      resultsSection.classList.remove('hidden');
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+      // Update download buttons to use formatted output
+      transcriptionData.formattedOutput = formatData.formatted;
+    } else {
+      throw new Error('Failed to save transcript');
+    }
+  } catch (error) {
+    console.error('Save transcript error:', error);
+    hideLoading();
+    showError('Failed to save transcript: ' + error.message);
+  }
+});
+
+// Initialize projects on page load
+loadProjects();
+

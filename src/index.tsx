@@ -291,6 +291,22 @@ app.get('/', (c) => {
             </p>
           </div>
 
+          {/* Project Selector */}
+          <div class="glass-card rounded-2xl shadow-xl p-6 mb-6 animate-fade-in-up">
+            <div class="flex items-center justify-between mb-4">
+              <label class="text-lg font-bold text-white">📁 Select Project</label>
+              <button id="newProjectBtn" class="smart-button-secondary text-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Project
+              </button>
+            </div>
+            <select id="projectSelect" class="smart-select">
+              <option value="1">📁 General</option>
+            </select>
+          </div>
+
           {/* Main Card */}
           <div class="glass-card rounded-3xl shadow-2xl p-8 mb-8 animate-fade-in-up">
             {/* Tabs */}
@@ -564,6 +580,132 @@ app.get('/', (c) => {
               <div>
                 <p class="font-bold text-red-400 text-lg mb-1">Error</p>
                 <p id="errorText" class="text-gray-300"></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Format Selection Modal */}
+          <div id="formatModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="glass-card rounded-3xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <h2 class="text-3xl font-bold text-white mb-2">🎉 Recording Complete!</h2>
+              <p class="text-gray-300 mb-6">Choose how you'd like to format your transcript</p>
+              
+              {/* Format Options */}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button class="format-option-btn" data-format="internal">
+                  <div class="flex items-start space-x-4">
+                    <div class="text-4xl">📝</div>
+                    <div class="text-left">
+                      <div class="font-bold text-white text-lg mb-1">Internal MOM</div>
+                      <div class="text-sm text-gray-400">Casual team format with action items</div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button class="format-option-btn" data-format="client">
+                  <div class="flex items-start space-x-4">
+                    <div class="text-4xl">📄</div>
+                    <div class="text-left">
+                      <div class="font-bold text-white text-lg mb-1">Client-Facing MOM</div>
+                      <div class="text-sm text-gray-400">Professional format with decisions table</div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button class="format-option-btn" data-format="standard">
+                  <div class="flex items-start space-x-4">
+                    <div class="text-4xl">📋</div>
+                    <div class="text-left">
+                      <div class="font-bold text-white text-lg mb-1">Standard Transcript</div>
+                      <div class="text-sm text-gray-400">Full text with timestamps</div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button class="format-option-btn" data-format="pdf">
+                  <div class="flex items-start space-x-4">
+                    <div class="text-4xl">📥</div>
+                    <div class="text-left">
+                      <div class="font-bold text-white text-lg mb-1">PDF Export</div>
+                      <div class="text-sm text-gray-400">Download as PDF document</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              
+              {/* Meeting Info Form */}
+              <div class="space-y-4 mb-6">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Meeting Title *</label>
+                  <input type="text" id="meetingTitle" class="smart-input" placeholder="e.g., Weekly Team Sync" required />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Attendees</label>
+                  <input type="text" id="meetingAttendees" class="smart-input" placeholder="e.g., John, Sarah, Mike" />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Company/Client Name</label>
+                  <input type="text" id="meetingCompany" class="smart-input" placeholder="e.g., Acme Corp" />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Date</label>
+                  <input type="date" id="meetingDate" class="smart-input" />
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div class="flex gap-3">
+                <button id="cancelFormatBtn" class="smart-button-secondary flex-1">Cancel</button>
+                <button id="saveTranscriptBtn" class="smart-button-success flex-1">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Save Transcript
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* New Project Modal */}
+          <div id="newProjectModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="glass-card rounded-3xl p-8 max-w-md w-full">
+              <h2 class="text-2xl font-bold text-white mb-6">Create New Project</h2>
+              
+              <div class="space-y-4 mb-6">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Project Name *</label>
+                  <input type="text" id="newProjectName" class="smart-input" placeholder="e.g., Client A Meetings" required />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Description</label>
+                  <textarea id="newProjectDesc" class="smart-input" rows="3" placeholder="Brief description..."></textarea>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">Color</label>
+                  <div class="flex gap-2">
+                    <button class="color-btn active" data-color="#3b82f6" style="background: #3b82f6"></button>
+                    <button class="color-btn" data-color="#8b5cf6" style="background: #8b5cf6"></button>
+                    <button class="color-btn" data-color="#ec4899" style="background: #ec4899"></button>
+                    <button class="color-btn" data-color="#10b981" style="background: #10b981"></button>
+                    <button class="color-btn" data-color="#f59e0b" style="background: #f59e0b"></button>
+                    <button class="color-btn" data-color="#ef4444" style="background: #ef4444"></button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex gap-3">
+                <button id="cancelProjectBtn" class="smart-button-secondary flex-1">Cancel</button>
+                <button id="createProjectBtn" class="smart-button-primary flex-1">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Create Project
+                </button>
               </div>
             </div>
           </div>
