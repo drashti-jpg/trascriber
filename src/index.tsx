@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { renderer } from './renderer'
+import { formatInternalMOM, formatClientMOM, formatStandardTranscript } from './formatting'
 
 const app = new Hono()
 
@@ -73,8 +74,193 @@ app.post('/api/transcribe', async (c) => {
 app.get('/api/health', (c) => {
   return c.json({ 
     status: 'ok', 
-    hasApiKey: !!c.env?.OPENAI_API_KEY 
+    hasApiKey: !!c.env?.OPENAI_API_KEY,
+    hasDatabase: !!c.env?.DB
   })
+})
+
+// Project Management APIs
+app.get('/api/projects', async (c) => {
+  try {
+    const db = c.env?.DB
+    if (!db) {
+      return c.json({ error: 'Database not configured' }, 500)
+    }
+
+    const { results } = await db.prepare(
+      'SELECT * FROM projects ORDER BY updated_at DESC'
+    ).all()
+
+    return c.json({ projects: results })
+  } catch (error) {
+    console.error('Get projects error:', error)
+    return c.json({ error: 'Failed to fetch projects' }, 500)
+  }
+})
+
+app.post('/api/projects', async (c) => {
+  try {
+    const db = c.env?.DB
+    if (!db) {
+      return c.json({ error: 'Database not configured' }, 500)
+    }
+
+    const { name, description, color } = await c.req.json()
+    
+    if (!name) {
+      return c.json({ error: 'Project name is required' }, 400)
+    }
+
+    const result = await db.prepare(
+      'INSERT INTO projects (name, description, color) VALUES (?, ?, ?)'
+    ).bind(name, description || '', color || '#3b82f6').run()
+
+    return c.json({ 
+      success: true, 
+      projectId: result.meta.last_row_id 
+    })
+  } catch (error) {
+    console.error('Create project error:', error)
+    return c.json({ error: 'Failed to create project' }, 500)
+  }
+})
+
+// Save transcript with formatting
+app.post('/api/transcripts', async (c) => {
+  try {
+    const db = c.env?.DB
+    if (!db) {
+      return c.json({ error: 'Database not configured' }, 500)
+    }
+
+    const { 
+      project_id,
+      title,
+      transcript_text,
+      language,
+      duration,
+      audio_source,
+      format_type,
+      formatted_output,
+      segments
+    } = await c.req.json()
+
+    if (!project_id || !title || !transcript_text) {
+      return c.json({ error: 'Missing required fields' }, 400)
+    }
+
+    const result = await db.prepare(`
+      INSERT INTO transcripts (
+        project_id, title, transcript_text, language, duration,
+        audio_source, format_type, formatted_output, segments
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      project_id,
+      title,
+      transcript_text,
+      language || 'unknown',
+      duration || 0,
+      audio_source || 'microphone',
+      format_type || 'standard',
+      formatted_output || transcript_text,
+      JSON.stringify(segments || [])
+    ).run()
+
+    // Update project's updated_at
+    await db.prepare(
+      'UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).bind(project_id).run()
+
+    return c.json({ 
+      success: true, 
+      transcriptId: result.meta.last_row_id 
+    })
+  } catch (error) {
+    console.error('Save transcript error:', error)
+    return c.json({ error: 'Failed to save transcript' }, 500)
+  }
+})
+
+// Get transcripts for a project
+app.get('/api/projects/:id/transcripts', async (c) => {
+  try {
+    const db = c.env?.DB
+    if (!db) {
+      return c.json({ error: 'Database not configured' }, 500)
+    }
+
+    const projectId = c.req.param('id')
+    
+    const { results } = await db.prepare(
+      'SELECT * FROM transcripts WHERE project_id = ? ORDER BY created_at DESC'
+    ).bind(projectId).all()
+
+    return c.json({ transcripts: results })
+  } catch (error) {
+    console.error('Get transcripts error:', error)
+    return c.json({ error: 'Failed to fetch transcripts' }, 500)
+  }
+})
+
+// Get single transcript
+app.get('/api/transcripts/:id', async (c) => {
+  try {
+    const db = c.env?.DB
+    if (!db) {
+      return c.json({ error: 'Database not configured' }, 500)
+    }
+
+    const transcriptId = c.req.param('id')
+    
+    const result = await db.prepare(
+      'SELECT * FROM transcripts WHERE id = ?'
+    ).bind(transcriptId).first()
+
+    if (!result) {
+      return c.json({ error: 'Transcript not found' }, 404)
+    }
+
+    return c.json({ transcript: result })
+  } catch (error) {
+    console.error('Get transcript error:', error)
+    return c.json({ error: 'Failed to fetch transcript' }, 500)
+  }
+})
+
+// Format transcript
+app.post('/api/format', async (c) => {
+  try {
+    const { transcriptData, meetingInfo, formatType } = await c.req.json()
+    
+    if (!transcriptData || !formatType) {
+      return c.json({ error: 'Missing required fields' }, 400)
+    }
+
+    let formattedOutput = ''
+    
+    switch (formatType) {
+      case 'internal':
+        formattedOutput = formatInternalMOM(transcriptData, meetingInfo || {})
+        break
+      case 'client':
+        formattedOutput = formatClientMOM(transcriptData, meetingInfo || {})
+        break
+      case 'standard':
+        formattedOutput = formatStandardTranscript(transcriptData, meetingInfo || {})
+        break
+      default:
+        return c.json({ error: 'Invalid format type' }, 400)
+    }
+
+    return c.json({ 
+      success: true,
+      formatted: formattedOutput,
+      formatType
+    })
+  } catch (error) {
+    console.error('Format error:', error)
+    return c.json({ error: 'Failed to format transcript' }, 500)
+  }
 })
 
 app.get('/', (c) => {
