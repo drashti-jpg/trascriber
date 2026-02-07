@@ -15,6 +15,7 @@ const recordButton = document.getElementById('recordButton');
 const stopButton = document.getElementById('stopButton');
 const recordingStatus = document.getElementById('recordingStatus');
 const recordingTimer = document.getElementById('recordingTimer');
+const recordingPulse = document.getElementById('recordingPulse');
 const audioPreview = document.getElementById('audioPreview');
 const audioPlayer = document.getElementById('audioPlayer');
 const transcribeRecording = document.getElementById('transcribeRecording');
@@ -25,6 +26,8 @@ const languageSelect = document.getElementById('languageSelect');
 const resultsSection = document.getElementById('resultsSection');
 const transcriptionText = document.getElementById('transcriptionText');
 const transcriptionMeta = document.getElementById('transcriptionMeta');
+const languageInfo = document.getElementById('languageInfo');
+const durationInfo = document.getElementById('durationInfo');
 const copyButton = document.getElementById('copyButton');
 const downloadTxt = document.getElementById('downloadTxt');
 const downloadJson = document.getElementById('downloadJson');
@@ -87,6 +90,8 @@ async function startRecording() {
     stopButton.classList.remove('hidden');
     recordingStatus.textContent = 'Recording in progress...';
     recordingTimer.classList.remove('hidden');
+    recordingPulse.classList.remove('opacity-0');
+    recordingPulse.classList.add('opacity-20');
     audioPreview.classList.add('hidden');
     
     startTimer();
@@ -104,6 +109,8 @@ function stopRecording() {
     recordButton.textContent = 'Record Again';
     recordingStatus.textContent = 'Recording complete';
     recordingTimer.classList.add('hidden');
+    recordingPulse.classList.remove('opacity-20');
+    recordingPulse.classList.add('opacity-0');
     clearInterval(timerInterval);
   }
 }
@@ -123,8 +130,10 @@ fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (file) {
     uploadedFile = file;
-    const fileInfoText = fileInfo.querySelector('p');
-    fileInfoText.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
     fileInfo.classList.remove('hidden');
   }
 });
@@ -169,11 +178,12 @@ async function transcribeAudio(audioBlob, filename = 'recording.webm') {
     // Display results
     transcriptionData = data;
     transcriptionText.textContent = data.text;
-    transcriptionMeta.textContent = `Language: ${data.language || 'Unknown'} | Duration: ${formatDuration(data.duration)}`;
+    languageInfo.textContent = `Language: ${data.language || 'Unknown'}`;
+    durationInfo.textContent = `Duration: ${formatDuration(data.duration)}`;
     resultsSection.classList.remove('hidden');
     
     // Scroll to results
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   } catch (error) {
     showError('Transcription failed: ' + error.message);
@@ -210,10 +220,15 @@ transcribeFile.addEventListener('click', () => {
 copyButton.addEventListener('click', () => {
   if (transcriptionData) {
     navigator.clipboard.writeText(transcriptionData.text).then(() => {
-      const originalText = copyButton.textContent;
-      copyButton.textContent = '✅ Copied!';
+      const originalHTML = copyButton.innerHTML;
+      copyButton.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        Copied!
+      `;
       setTimeout(() => {
-        copyButton.textContent = originalText;
+        copyButton.innerHTML = originalHTML;
       }, 2000);
     });
   }
