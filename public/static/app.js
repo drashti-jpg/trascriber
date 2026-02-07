@@ -48,8 +48,6 @@ const tabSourceBtn = document.getElementById('tabSourceBtn');
 const systemSourceBtn = document.getElementById('systemSourceBtn');
 const sourceHelpText = document.getElementById('sourceHelpText');
 
-let transcriptionData = null;
-
 // Tab switching
 recordTab.addEventListener('click', () => {
   recordTab.classList.add('active');
