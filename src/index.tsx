@@ -152,7 +152,7 @@ app.get('/', (c) => {
                       </div>
                       <div class="text-center">
                         <div class="font-semibold text-white text-sm mb-1">Browser Tab</div>
-                        <div class="text-xs text-gray-400">Meeting tab audio</div>
+                        <div class="text-xs text-gray-400">Your voice + tab audio</div>
                       </div>
                     </div>
                   </button>
@@ -166,7 +166,7 @@ app.get('/', (c) => {
                       </div>
                       <div class="text-center">
                         <div class="font-semibold text-white text-sm mb-1">System Audio</div>
-                        <div class="text-xs text-gray-400">Screen + audio</div>
+                        <div class="text-xs text-gray-400">Your voice + system</div>
                       </div>
                     </div>
                   </button>

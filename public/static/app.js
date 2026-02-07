@@ -63,8 +63,8 @@ uploadTab.addEventListener('click', () => {
 // Audio source selection
 const helpTexts = {
   microphone: '<strong class="text-blue-400">Microphone:</strong> Records from your microphone (for in-person meetings or voice notes)',
-  tab: '<strong class="text-purple-400">Browser Tab:</strong> Captures audio from a browser tab (perfect for Google Meet, Teams web, Zoom web meetings)',
-  system: '<strong class="text-green-400">System Audio:</strong> Captures your entire screen with system audio (works with desktop apps like Zoom, Teams, Skype)'
+  tab: '<strong class="text-purple-400">Browser Tab:</strong> Captures <strong>both your voice AND the meeting audio</strong> from a browser tab (perfect for Google Meet, Teams web, Zoom web meetings). Records everything you say and hear!',
+  system: '<strong class="text-green-400">System Audio:</strong> Captures <strong>both your voice AND all system audio</strong> from your screen (works with desktop apps like Zoom, Teams, Skype). Records your voice plus everything from the app!'
 };
 
 micSourceBtn.addEventListener('click', () => {
@@ -108,8 +108,19 @@ async function startRecording() {
       // Standard microphone recording
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } else if (audioSource === 'tab') {
-      // Tab audio capture - user selects browser tab
-      stream = await navigator.mediaDevices.getDisplayMedia({
+      // Tab audio capture + microphone - MIXED AUDIO
+      
+      // Get microphone stream
+      const micStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      
+      // Get tab audio stream
+      const tabStream = await navigator.mediaDevices.getDisplayMedia({
         video: true, // Required for tab capture
         audio: {
           echoCancellation: false,
@@ -118,23 +129,69 @@ async function startRecording() {
         }
       });
       
-      // Extract only audio track
-      const audioTrack = stream.getAudioTracks()[0];
-      if (!audioTrack) {
+      // Extract audio tracks
+      const tabAudioTrack = tabStream.getAudioTracks()[0];
+      if (!tabAudioTrack) {
+        // Clean up mic stream
+        micStream.getTracks().forEach(track => track.stop());
         throw new Error('No audio track found. Make sure to select "Share audio" when choosing the tab.');
       }
       
       // Stop video track to save resources
-      const videoTrack = stream.getVideoTracks()[0];
+      const videoTrack = tabStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.stop();
       }
       
-      // Create new stream with only audio
-      stream = new MediaStream([audioTrack]);
+      // Mix both audio sources using Web Audio API
+      const audioContext = new AudioContext();
+      const destination = audioContext.createMediaStreamDestination();
+      
+      // Create sources for both streams
+      const micSource = audioContext.createMediaStreamSource(micStream);
+      const tabSource = audioContext.createMediaStreamSource(new MediaStream([tabAudioTrack]));
+      
+      // Create gain nodes to control volume
+      const micGain = audioContext.createGain();
+      const tabGain = audioContext.createGain();
+      
+      // Set volume levels (adjust if needed)
+      micGain.gain.value = 1.0; // Your voice
+      tabGain.gain.value = 1.0; // Meeting audio
+      
+      // Connect: source -> gain -> destination
+      micSource.connect(micGain);
+      tabGain.connect(destination);
+      micGain.connect(destination);
+      tabSource.connect(tabGain);
+      
+      // Use the mixed stream
+      stream = destination.stream;
+      
+      // Store streams for cleanup
+      currentStream = {
+        audioContext,
+        micStream,
+        tabStream,
+        combinedStream: stream,
+        getTracks: function() {
+          return [...micStream.getTracks(), ...tabStream.getTracks()];
+        }
+      };
     } else if (audioSource === 'system') {
-      // System audio with screen share
-      stream = await navigator.mediaDevices.getDisplayMedia({
+      // System audio with screen share + microphone
+      
+      // Get microphone stream
+      const micStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      
+      // Get system audio stream
+      const systemStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: {
           echoCancellation: false,
@@ -144,19 +201,49 @@ async function startRecording() {
       });
       
       // Extract audio track
-      const audioTrack = stream.getAudioTracks()[0];
-      if (!audioTrack) {
+      const systemAudioTrack = systemStream.getAudioTracks()[0];
+      if (!systemAudioTrack) {
+        // Clean up mic stream
+        micStream.getTracks().forEach(track => track.stop());
         throw new Error('No audio track found. Make sure to check "Share system audio" when sharing your screen.');
       }
       
       // Stop video track
-      const videoTrack = stream.getVideoTracks()[0];
+      const videoTrack = systemStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.stop();
       }
       
-      // Create new stream with only audio
-      stream = new MediaStream([audioTrack]);
+      // Mix both audio sources
+      const audioContext = new AudioContext();
+      const destination = audioContext.createMediaStreamDestination();
+      
+      const micSource = audioContext.createMediaStreamSource(micStream);
+      const systemSource = audioContext.createMediaStreamSource(new MediaStream([systemAudioTrack]));
+      
+      const micGain = audioContext.createGain();
+      const systemGain = audioContext.createGain();
+      
+      micGain.gain.value = 1.0;
+      systemGain.gain.value = 1.0;
+      
+      micSource.connect(micGain);
+      systemSource.connect(systemGain);
+      micGain.connect(destination);
+      systemGain.connect(destination);
+      
+      stream = destination.stream;
+      
+      // Store streams for cleanup
+      currentStream = {
+        audioContext,
+        micStream,
+        systemStream,
+        combinedStream: stream,
+        getTracks: function() {
+          return [...micStream.getTracks(), ...systemStream.getTracks()];
+        }
+      };
     }
     
     currentStream = stream;
@@ -183,9 +270,23 @@ async function startRecording() {
       audioPlayer.src = audioUrl;
       audioPreview.classList.remove('hidden');
       
-      // Stop all tracks
+      // Stop all tracks and clean up
       if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
+        if (currentStream.getTracks) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+        if (currentStream.audioContext) {
+          currentStream.audioContext.close();
+        }
+        if (currentStream.micStream) {
+          currentStream.micStream.getTracks().forEach(track => track.stop());
+        }
+        if (currentStream.tabStream) {
+          currentStream.tabStream.getTracks().forEach(track => track.stop());
+        }
+        if (currentStream.systemStream) {
+          currentStream.systemStream.getTracks().forEach(track => track.stop());
+        }
         currentStream = null;
       }
     };
@@ -200,9 +301,9 @@ async function startRecording() {
     if (audioSource === 'microphone') {
       recordingStatus.textContent = 'Recording from microphone...';
     } else if (audioSource === 'tab') {
-      recordingStatus.textContent = 'Recording from browser tab...';
+      recordingStatus.textContent = 'Recording: Your voice + Meeting audio';
     } else if (audioSource === 'system') {
-      recordingStatus.textContent = 'Recording system audio...';
+      recordingStatus.textContent = 'Recording: Your voice + System audio';
     }
     
     recordingTimer.classList.remove('hidden');
