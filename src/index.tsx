@@ -125,6 +125,66 @@ app.get('/', (c) => {
 
             {/* Record Tab Content */}
             <div id="recordContent" class="tab-content">
+              {/* Audio Source Selection */}
+              <div class="mb-8 p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
+                <label class="block text-sm font-semibold text-gray-300 mb-4">Select Audio Source</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button id="micSourceBtn" class="audio-source-btn active group">
+                    <div class="flex flex-col items-center space-y-3 p-4">
+                      <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                        </svg>
+                      </div>
+                      <div class="text-center">
+                        <div class="font-semibold text-white text-sm mb-1">Microphone</div>
+                        <div class="text-xs text-gray-400">Your mic input</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button id="tabSourceBtn" class="audio-source-btn group">
+                    <div class="flex flex-col items-center space-y-3 p-4">
+                      <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                      <div class="text-center">
+                        <div class="font-semibold text-white text-sm mb-1">Browser Tab</div>
+                        <div class="text-xs text-gray-400">Meeting tab audio</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button id="systemSourceBtn" class="audio-source-btn group">
+                    <div class="flex flex-col items-center space-y-3 p-4">
+                      <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                      <div class="text-center">
+                        <div class="font-semibold text-white text-sm mb-1">System Audio</div>
+                        <div class="text-xs text-gray-400">Screen + audio</div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+                
+                {/* Help Text */}
+                <div class="mt-4 p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div id="sourceHelpText" class="text-sm text-gray-300">
+                      <strong class="text-blue-400">Microphone:</strong> Records from your microphone (for in-person meetings or voice notes)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="text-center space-y-6">
                 <div class="relative inline-flex items-center justify-center">
                   <div id="recordingPulse" class="absolute w-32 h-32 bg-red-500 rounded-full opacity-0 animate-ping-slow"></div>

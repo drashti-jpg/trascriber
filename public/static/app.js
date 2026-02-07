@@ -5,6 +5,8 @@ let recordingStartTime = null;
 let timerInterval = null;
 let currentAudioBlob = null;
 let uploadedFile = null;
+let currentStream = null;
+let audioSource = 'microphone'; // 'microphone', 'tab', 'system'
 
 // DOM elements
 const recordTab = document.getElementById('recordTab');
@@ -35,6 +37,12 @@ const loadingSpinner = document.getElementById('loadingSpinner');
 const errorMessage = document.getElementById('errorMessage');
 const errorText = document.getElementById('errorText');
 
+// Audio source buttons
+const micSourceBtn = document.getElementById('micSourceBtn');
+const tabSourceBtn = document.getElementById('tabSourceBtn');
+const systemSourceBtn = document.getElementById('systemSourceBtn');
+const sourceHelpText = document.getElementById('sourceHelpText');
+
 let transcriptionData = null;
 
 // Tab switching
@@ -52,10 +60,106 @@ uploadTab.addEventListener('click', () => {
   recordContent.classList.add('hidden');
 });
 
+// Audio source selection
+const helpTexts = {
+  microphone: '<strong class="text-blue-400">Microphone:</strong> Records from your microphone (for in-person meetings or voice notes)',
+  tab: '<strong class="text-purple-400">Browser Tab:</strong> Captures audio from a browser tab (perfect for Google Meet, Teams web, Zoom web meetings)',
+  system: '<strong class="text-green-400">System Audio:</strong> Captures your entire screen with system audio (works with desktop apps like Zoom, Teams, Skype)'
+};
+
+micSourceBtn.addEventListener('click', () => {
+  setAudioSource('microphone');
+  sourceHelpText.innerHTML = helpTexts.microphone;
+});
+
+tabSourceBtn.addEventListener('click', () => {
+  setAudioSource('tab');
+  sourceHelpText.innerHTML = helpTexts.tab;
+});
+
+systemSourceBtn.addEventListener('click', () => {
+  setAudioSource('system');
+  sourceHelpText.innerHTML = helpTexts.system;
+});
+
+function setAudioSource(source) {
+  audioSource = source;
+  
+  // Update button states
+  micSourceBtn.classList.remove('active');
+  tabSourceBtn.classList.remove('active');
+  systemSourceBtn.classList.remove('active');
+  
+  if (source === 'microphone') {
+    micSourceBtn.classList.add('active');
+  } else if (source === 'tab') {
+    tabSourceBtn.classList.add('active');
+  } else if (source === 'system') {
+    systemSourceBtn.classList.add('active');
+  }
+}
+
 // Recording functions
 async function startRecording() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let stream;
+    
+    if (audioSource === 'microphone') {
+      // Standard microphone recording
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } else if (audioSource === 'tab') {
+      // Tab audio capture - user selects browser tab
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true, // Required for tab capture
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
+      
+      // Extract only audio track
+      const audioTrack = stream.getAudioTracks()[0];
+      if (!audioTrack) {
+        throw new Error('No audio track found. Make sure to select "Share audio" when choosing the tab.');
+      }
+      
+      // Stop video track to save resources
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.stop();
+      }
+      
+      // Create new stream with only audio
+      stream = new MediaStream([audioTrack]);
+    } else if (audioSource === 'system') {
+      // System audio with screen share
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
+      
+      // Extract audio track
+      const audioTrack = stream.getAudioTracks()[0];
+      if (!audioTrack) {
+        throw new Error('No audio track found. Make sure to check "Share system audio" when sharing your screen.');
+      }
+      
+      // Stop video track
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.stop();
+      }
+      
+      // Create new stream with only audio
+      stream = new MediaStream([audioTrack]);
+    }
+    
+    currentStream = stream;
     
     // Determine the best audio format
     const options = {};
@@ -80,7 +184,10 @@ async function startRecording() {
       audioPreview.classList.remove('hidden');
       
       // Stop all tracks
-      stream.getTracks().forEach(track => track.stop());
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+      }
     };
 
     mediaRecorder.start();
@@ -88,7 +195,16 @@ async function startRecording() {
     
     recordButton.classList.add('hidden');
     stopButton.classList.remove('hidden');
-    recordingStatus.textContent = 'Recording in progress...';
+    
+    // Update status based on source
+    if (audioSource === 'microphone') {
+      recordingStatus.textContent = 'Recording from microphone...';
+    } else if (audioSource === 'tab') {
+      recordingStatus.textContent = 'Recording from browser tab...';
+    } else if (audioSource === 'system') {
+      recordingStatus.textContent = 'Recording system audio...';
+    }
+    
     recordingTimer.classList.remove('hidden');
     recordingPulse.classList.remove('opacity-0');
     recordingPulse.classList.add('opacity-20');
@@ -96,7 +212,21 @@ async function startRecording() {
     
     startTimer();
   } catch (error) {
-    showError('Failed to access microphone. Please grant permission and try again.');
+    let errorMsg = 'Failed to start recording. ';
+    
+    if (error.name === 'NotAllowedError') {
+      if (audioSource === 'microphone') {
+        errorMsg += 'Please grant microphone permissions.';
+      } else {
+        errorMsg += 'Please allow screen/tab sharing.';
+      }
+    } else if (error.message.includes('No audio track')) {
+      errorMsg += error.message;
+    } else {
+      errorMsg += error.message || 'Unknown error occurred.';
+    }
+    
+    showError(errorMsg);
     console.error('Recording error:', error);
   }
 }
