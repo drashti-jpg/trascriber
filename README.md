@@ -12,6 +12,9 @@ A free, open-source web application for recording and transcribing meetings usin
 - **💾 Export Options**: Download as TXT or JSON with timestamps
 - **📋 Easy Sharing**: One-click copy to clipboard
 - **🎯 No Installation**: Works in any modern browser
+- **🎨 Modern UI**: Beautiful dark theme with glassmorphism effects
+- **✨ Smooth Animations**: Polished user experience with transitions
+- **📱 Responsive Design**: Works perfectly on mobile and desktop
 
 ## 🚀 Live Demo
 
