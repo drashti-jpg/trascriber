@@ -24,13 +24,17 @@ The Meeting Transcriber now supports **three different audio capture methods** t
 ### 2. 🖥️ Browser Tab (Recommended for Online Meetings)
 **Best for:** Google Meet, Microsoft Teams (web), Zoom (web), any browser-based meeting
 
+**What it captures:**
+- ✅ **Your voice** (from microphone)
+- ✅ **Meeting audio** (what others are saying)
+- ✅ **Complete conversation** - both sides!
+
 **How it works:**
 1. Click "Browser Tab" audio source
 2. Click "Start Recording"
-3. Browser shows tab selection dialog
-4. Select the meeting tab (e.g., "Google Meet - meet.google.com")
-5. **IMPORTANT:** Check "Share audio" checkbox
-6. Click "Share"
+3. **First prompt:** Allow microphone access (for your voice)
+4. **Second prompt:** Select meeting tab + Check "Share audio"
+5. Browser captures and mixes both audio sources automatically
 
 **Step-by-step for Google Meet:**
 ```
@@ -38,17 +42,19 @@ The Meeting Transcriber now supports **three different audio capture methods** t
 2. Open Meeting Transcriber in another tab
 3. Select "Browser Tab" source
 4. Click "Start Recording"
-5. In the popup, select your Meet tab
-6. ✅ Check "Share audio" (essential!)
-7. Click Share
-8. Meeting audio is now being recorded
+5. ✅ Allow microphone access (first popup)
+6. Select your Meet tab (second popup)
+7. ✅ Check "Share audio" (essential!)
+8. Click Share
+9. Both your voice AND meeting audio are recorded!
 ```
 
 **Advantages:**
 ✅ Crystal clear audio quality  
+✅ Captures YOUR voice + others' voices  
 ✅ No microphone feedback  
-✅ Only captures meeting audio (not your notifications)  
 ✅ Works perfectly with headphones  
+✅ Only captures meeting audio (not your notifications)  
 
 **Browser Support:**
 - ✅ Chrome/Edge: Fully supported
@@ -60,13 +66,17 @@ The Meeting Transcriber now supports **three different audio capture methods** t
 ### 3. 🖥️ System Audio (For Desktop Apps)
 **Best for:** Zoom Desktop, Microsoft Teams Desktop, Skype, any desktop application
 
+**What it captures:**
+- ✅ **Your voice** (from microphone)
+- ✅ **System audio** (from desktop app)
+- ✅ **Complete conversation** - both sides!
+
 **How it works:**
 1. Click "System Audio" audio source
 2. Click "Start Recording"
-3. Browser shows screen share dialog
-4. Select "Entire Screen" or "Application Window"
-5. **IMPORTANT:** Check "Share system audio" or "Share audio" checkbox
-6. Click "Share"
+3. **First prompt:** Allow microphone access (for your voice)
+4. **Second prompt:** Share screen + Check "Share system audio"
+5. Browser captures and mixes both audio sources automatically
 
 **Step-by-step for Zoom Desktop:**
 ```
@@ -74,15 +84,16 @@ The Meeting Transcriber now supports **three different audio capture methods** t
 2. Open Meeting Transcriber in browser
 3. Select "System Audio" source
 4. Click "Start Recording"
-5. Choose "Entire Screen" or "Zoom window"
-6. ✅ Check "Share system audio" (essential!)
-7. Click Share
-8. All system audio is being recorded
+5. ✅ Allow microphone access (first popup)
+6. Choose "Entire Screen" or "Zoom window" (second popup)
+7. ✅ Check "Share system audio" (essential!)
+8. Click Share
+9. Both your voice AND system audio are recorded!
 ```
 
 **Advantages:**
 ✅ Works with desktop applications  
-✅ Captures all system sounds  
+✅ Captures YOUR voice + application audio  
 ✅ No additional software needed  
 
 **Note:** This also shares your screen visually, but the app only records the audio track.
