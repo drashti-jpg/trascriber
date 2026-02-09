@@ -1,0 +1,28 @@
+#!/bin/bash
+
+echo "========================================"
+echo "  Update OpenAI API Key"
+echo "========================================"
+echo ""
+echo "Current .dev.vars content:"
+cat .dev.vars
+echo ""
+echo "========================================"
+echo ""
+echo "To update your API key, run:"
+echo ""
+echo "  nano .dev.vars"
+echo ""
+echo "Or use this one-liner (replace YOUR_KEY with your actual key):"
+echo ""
+echo '  echo "OPENAI_API_KEY=sk-proj-YOUR_KEY" > .dev.vars'
+echo ""
+echo "After updating, restart the server:"
+echo ""
+echo "  pm2 restart webapp --update-env"
+echo ""
+echo "========================================"
+echo ""
+echo "Get your API key from:"
+echo "  https://platform.openai.com/api-keys"
+echo ""
