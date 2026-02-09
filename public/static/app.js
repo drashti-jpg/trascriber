@@ -841,7 +841,7 @@ saveApiKeyBtn.addEventListener('click', async () => {
   showLoading();
   
   try {
-    // First validate with main API
+    // Validate with main API
     const validateResponse = await fetch('/api/config/api-key', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -850,46 +850,72 @@ saveApiKeyBtn.addEventListener('click', async () => {
     
     const validateData = await validateResponse.json();
     
-    if (!validateData.success) {
-      hideLoading();
-      showError(validateData.error || 'Failed to validate API key');
-      return;
-    }
-    
-    // Then update via helper server
-    const updateResponse = await fetch('http://localhost:3001/update-api-key', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey })
-    });
-    
-    const updateData = await updateResponse.json();
-    
     hideLoading();
     
-    if (updateData.success) {
+    if (validateData.success) {
+      // Create a shell script to update the API key
+      const scriptContent = `#!/bin/bash
+# Auto-generated API key update script
+# Generated on: ${new Date().toISOString()}
+
+echo "🔑 Updating OpenAI API Key..."
+echo ""
+
+# Update .dev.vars file
+echo "OPENAI_API_KEY=${apiKey}" > /home/user/webapp/.dev.vars
+
+echo "✅ API key written to .dev.vars"
+echo ""
+
+# Restart the server
+echo "🔄 Restarting server..."
+cd /home/user/webapp
+pm2 restart webapp --update-env
+
+echo ""
+echo "✅ Done! Server restarted with new API key."
+echo "   Refresh your browser to start transcribing!"
+`;
+
+      // Create a blob and download it
+      const blob = new Blob([scriptContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'update-api-key.sh';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       settingsModal.classList.add('hidden');
       apiKeyInput.value = '';
       apiKeyInput.type = 'password';
       
-      // Show success message with restart instructions
-      alert(`✅ API Key Updated Successfully!
+      // Show success message
+      alert(`✅ API Key Validated!
 
-The server will restart automatically to load the new key.
+A script file "update-api-key.sh" has been downloaded.
 
-Please wait 5 seconds and refresh the page.`);
+To apply the API key:
+
+1. Open a terminal
+2. Run these commands:
+   
+   chmod +x update-api-key.sh
+   ./update-api-key.sh
+
+3. Refresh this page
+
+Your API key will then be active!`);
       
-      // Auto-reload after 5 seconds
-      setTimeout(() => {
-        window.location.reload();
-      }, 5000);
     } else {
-      showError(updateData.error || 'Failed to update API key');
+      showError(validateData.error || 'Failed to validate API key');
     }
   } catch (error) {
     hideLoading();
-    console.error('API key update error:', error);
-    showError('Failed to update API key: ' + error.message);
+    console.error('API key validation error:', error);
+    showError('Failed to validate API key: ' + error.message);
   }
 });
 
