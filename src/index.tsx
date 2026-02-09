@@ -308,8 +308,8 @@ app.get('/', (c) => {
       <div class="container mx-auto px-4 py-12 relative z-10">
         <div class="max-w-5xl mx-auto">
           {/* Header */}
-          <div class="text-center mb-10 animate-fade-in">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg mb-6">
+          <div class="text-center mb-10 animate-slide-down">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg mb-6 icon-bounce">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
               </svg>
@@ -318,7 +318,7 @@ app.get('/', (c) => {
               <h1 class="text-4xl md:text-5xl font-semibold text-white mb-3">
                 Meeting Transcriber
               </h1>
-              <button id="settingsBtn" class="absolute top-0 right-0 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-all">
+              <button id="settingsBtn" class="absolute top-0 right-0 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-all icon-bounce">
                 <svg class="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -331,7 +331,7 @@ app.get('/', (c) => {
           </div>
 
           {/* Project Selector */}
-          <div class="glass-card rounded-2xl shadow-xl p-6 mb-6 animate-fade-in-up">
+          <div class="glass-card rounded-2xl shadow-xl p-6 mb-6 animate-slide-up delay-100">
             <div class="flex items-center justify-between mb-4">
               <label class="text-lg font-bold text-white">📁 Select Project</label>
               <button id="newProjectBtn" class="smart-button-secondary text-sm">
@@ -347,7 +347,7 @@ app.get('/', (c) => {
           </div>
 
           {/* Main Card */}
-          <div class="glass-card rounded-3xl shadow-2xl p-8 mb-8 animate-fade-in-up">
+          <div class="glass-card rounded-3xl shadow-2xl p-8 mb-8 animate-slide-up delay-200">
             {/* Tabs */}
             <div class="flex gap-2 p-2 bg-white/5 rounded-2xl mb-8">
               <button id="recordTab" class="modern-tab active flex-1 px-6 py-4 font-semibold rounded-xl transition-all duration-300">
@@ -828,7 +828,7 @@ app.get('/', (c) => {
           </div>
 
           {/* Setup Instructions */}
-          <div class="glass-card rounded-2xl p-6 mt-8 border border-blue-500/30">
+          <div class="glass-card rounded-2xl p-6 mt-8 border border-blue-500/30 animate-slide-up delay-300">
             <div class="flex items-start space-x-3">
               <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
