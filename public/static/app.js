@@ -767,3 +767,129 @@ saveTranscriptBtn.addEventListener('click', async () => {
 // Initialize projects on page load
 loadProjects();
 
+
+// Settings Modal
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const toggleApiKeyBtn = document.getElementById('toggleApiKeyBtn');
+const eyeIcon = document.getElementById('eyeIcon');
+const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+// Open settings modal
+settingsBtn.addEventListener('click', async () => {
+  settingsModal.classList.remove('hidden');
+  
+  // Check current API key status
+  try {
+    const response = await fetch('/api/health');
+    const data = await response.json();
+    
+    if (data.hasApiKey) {
+      apiKeyStatus.classList.remove('hidden');
+      apiKeyInput.placeholder = '••••••••••••••••••••••••';
+    } else {
+      apiKeyStatus.classList.add('hidden');
+      apiKeyInput.placeholder = 'sk-proj-...';
+    }
+  } catch (error) {
+    console.error('Health check failed:', error);
+  }
+});
+
+// Close settings modal
+closeSettingsBtn.addEventListener('click', () => {
+  settingsModal.classList.add('hidden');
+  apiKeyInput.value = '';
+  apiKeyInput.type = 'password';
+});
+
+cancelSettingsBtn.addEventListener('click', () => {
+  settingsModal.classList.add('hidden');
+  apiKeyInput.value = '';
+  apiKeyInput.type = 'password';
+});
+
+// Toggle API key visibility
+toggleApiKeyBtn.addEventListener('click', () => {
+  if (apiKeyInput.type === 'password') {
+    apiKeyInput.type = 'text';
+    eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>';
+  } else {
+    apiKeyInput.type = 'password';
+    eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+  }
+});
+
+// Save API key
+saveApiKeyBtn.addEventListener('click', async () => {
+  const apiKey = apiKeyInput.value.trim();
+  
+  if (!apiKey) {
+    showError('Please enter an API key');
+    return;
+  }
+  
+  if (!apiKey.startsWith('sk-')) {
+    showError('Invalid API key format. Keys should start with "sk-"');
+    return;
+  }
+  
+  showLoading();
+  
+  try {
+    // First validate with main API
+    const validateResponse = await fetch('/api/config/api-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey })
+    });
+    
+    const validateData = await validateResponse.json();
+    
+    if (!validateData.success) {
+      hideLoading();
+      showError(validateData.error || 'Failed to validate API key');
+      return;
+    }
+    
+    // Then update via helper server
+    const updateResponse = await fetch('http://localhost:3001/update-api-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey })
+    });
+    
+    const updateData = await updateResponse.json();
+    
+    hideLoading();
+    
+    if (updateData.success) {
+      settingsModal.classList.add('hidden');
+      apiKeyInput.value = '';
+      apiKeyInput.type = 'password';
+      
+      // Show success message with restart instructions
+      alert(`✅ API Key Updated Successfully!
+
+The server will restart automatically to load the new key.
+
+Please wait 5 seconds and refresh the page.`);
+      
+      // Auto-reload after 5 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+    } else {
+      showError(updateData.error || 'Failed to update API key');
+    }
+  } catch (error) {
+    hideLoading();
+    console.error('API key update error:', error);
+    showError('Failed to update API key: ' + error.message);
+  }
+});
+

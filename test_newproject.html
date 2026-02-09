@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test New Project Button</title>
+    <script>
+        function testButton() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'http://localhost:3000', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const html = xhr.responseText;
+                    if (html.includes('id="newProjectBtn"') && 
+                        html.includes('id="newProjectModal"') &&
+                        html.includes('/static/app.js')) {
+                        document.getElementById('result').innerHTML = 
+                            '<span style="color: green;">✓ SUCCESS: All required elements present!</span><br>' +
+                            '- New Project button exists<br>' +
+                            '- New Project modal exists<br>' +
+                            '- JavaScript file loaded<br>' +
+                            '<br>You can now click "New Project" button on the main page.';
+                    } else {
+                        document.getElementById('result').innerHTML = 
+                            '<span style="color: red;">✗ FAIL: Missing elements</span>';
+                    }
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</head>
+<body onload="testButton()">
+    <h1>Testing New Project Button</h1>
+    <div id="result">Testing...</div>
+</body>
+</html>

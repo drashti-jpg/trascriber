@@ -79,6 +79,42 @@ app.get('/api/health', (c) => {
   })
 })
 
+// API Key Configuration endpoint
+app.post('/api/config/api-key', async (c) => {
+  try {
+    const { apiKey } = await c.req.json()
+    
+    if (!apiKey || typeof apiKey !== 'string') {
+      return c.json({ error: 'API key is required' }, 400)
+    }
+
+    // Validate API key format
+    if (!apiKey.startsWith('sk-')) {
+      return c.json({ 
+        error: 'Invalid API key format. OpenAI keys should start with "sk-"',
+        warning: true
+      }, 400)
+    }
+
+    // Since we're in Cloudflare Workers environment, we can't directly write to files
+    // Instead, we'll return the key and instructions for the user
+    // The frontend will handle calling an external endpoint
+    
+    return c.json({ 
+      success: true,
+      apiKey: apiKey,
+      message: 'API key validated. Updating configuration...',
+      instructions: 'The server will restart automatically to load the new key.'
+    })
+  } catch (error: any) {
+    console.error('API key validation error:', error)
+    return c.json({ 
+      error: 'Failed to validate API key',
+      details: error.message 
+    }, 500)
+  }
+})
+
 // Project Management APIs
 app.get('/api/projects', async (c) => {
   try {
@@ -283,9 +319,17 @@ app.get('/', (c) => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
               </svg>
             </div>
-            <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-              Meeting Transcriber
-            </h1>
+            <div class="relative">
+              <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
+                Meeting Transcriber
+              </h1>
+              <button id="settingsBtn" class="absolute top-0 right-0 p-3 rounded-xl bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-all duration-300 hover:scale-110">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </button>
+            </div>
             <p class="text-xl text-gray-300 max-w-2xl mx-auto">
               Transform your audio into text with AI-powered transcription
             </p>
@@ -705,6 +749,84 @@ app.get('/', (c) => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
                   Create Project
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Settings Modal */}
+          <div id="settingsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="glass-card rounded-3xl p-8 max-w-lg w-full">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">⚙️ Settings</h2>
+                <button id="closeSettingsBtn" class="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div class="space-y-6">
+                {/* API Key Section */}
+                <div>
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">
+                    🔑 OpenAI API Key
+                  </label>
+                  <div class="flex gap-2">
+                    <input 
+                      type="password" 
+                      id="apiKeyInput" 
+                      class="smart-input flex-1" 
+                      placeholder="sk-proj-..." 
+                    />
+                    <button id="toggleApiKeyBtn" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+                      <svg id="eyeIcon" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-2">
+                    Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-400 hover:text-blue-300 underline">OpenAI Platform</a>
+                  </p>
+                </div>
+
+                {/* Current Status */}
+                <div id="apiKeyStatus" class="hidden p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-green-400 font-semibold">API Key Configured</span>
+                  </div>
+                </div>
+
+                {/* Info Box */}
+                <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-gray-300">
+                      <p class="font-semibold text-blue-400 mb-1">How it works:</p>
+                      <ul class="list-disc list-inside space-y-1 text-xs">
+                        <li>Your API key is stored securely in .dev.vars</li>
+                        <li>The server needs to restart to load the new key</li>
+                        <li>Cost: ~$0.006 per minute of audio</li>
+                        <li>Never share your API key publicly</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-3 mt-6">
+                <button id="cancelSettingsBtn" class="smart-button-secondary flex-1">Cancel</button>
+                <button id="saveApiKeyBtn" class="smart-button-primary flex-1">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Save & Restart
                 </button>
               </div>
             </div>

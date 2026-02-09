@@ -11,6 +11,19 @@ module.exports = {
       watch: false,
       instances: 1,
       exec_mode: 'fork'
+    },
+    {
+      name: 'api-key-helper',
+      script: '/home/user/webapp/api-key-helper.cjs',
+      interpreter: 'node',
+      cwd: '/home/user/webapp',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3001
+      },
+      watch: false,
+      instances: 1,
+      exec_mode: 'fork'
     }
   ]
 }
