@@ -301,37 +301,32 @@ app.post('/api/format', async (c) => {
 
 app.get('/', (c) => {
   return c.render(
-    <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10"></div>
-      <div class="absolute top-0 left-0 w-full h-full">
-        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div class="absolute bottom-1/4 left-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
+    <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
+      {/* Subtle background */}
+      <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-slate-900 to-blue-500/5"></div>
 
       <div class="container mx-auto px-4 py-12 relative z-10">
         <div class="max-w-5xl mx-auto">
           {/* Header */}
-          <div class="text-center mb-12 animate-fade-in-down">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-2xl mb-6 transform hover:scale-110 transition-transform duration-300">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="text-center mb-10 animate-fade-in">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg mb-6">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
               </svg>
             </div>
             <div class="relative">
-              <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
+              <h1 class="text-4xl md:text-5xl font-semibold text-white mb-3">
                 Meeting Transcriber
               </h1>
-              <button id="settingsBtn" class="absolute top-0 right-0 p-3 rounded-xl bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-all duration-300 hover:scale-110">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button id="settingsBtn" class="absolute top-0 right-0 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-all">
+                <svg class="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
               </button>
             </div>
-            <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-              Transform your audio into text with AI-powered transcription
+            <p class="text-lg text-gray-400 max-w-2xl mx-auto">
+              AI-powered audio transcription for meetings and interviews
             </p>
           </div>
 
@@ -431,21 +426,21 @@ app.get('/', (c) => {
                 </div>
               </div>
 
-              <div class="text-center space-y-6">
+              <div class="text-center space-y-5">
                 <div class="relative inline-flex items-center justify-center">
-                  <div id="recordingPulse" class="absolute w-32 h-32 bg-red-500 rounded-full opacity-0 animate-ping-slow"></div>
-                  <div class="relative w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
-                    <svg id="micIcon" class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div id="recordingPulse" class="absolute w-24 h-24 bg-red-500 rounded-full opacity-0 animate-pulse-subtle"></div>
+                  <div class="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                    <svg id="micIcon" class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
                     </svg>
                   </div>
                 </div>
                 
-                <div id="recordingStatus" class="text-xl font-semibold text-white">
+                <div id="recordingStatus" class="text-lg font-medium text-gray-300">
                   Ready to record
                 </div>
                 
-                <div id="recordingTimer" class="text-5xl font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 hidden">
+                <div id="recordingTimer" class="text-4xl font-mono font-semibold text-blue-400 hidden">
                   00:00
                 </div>
                 
