@@ -65,9 +65,9 @@ uploadTab.addEventListener('click', () => {
 
 // Audio source selection
 const helpTexts = {
-  microphone: '<strong class="text-blue-400">Microphone:</strong> Records from your microphone (for in-person meetings or voice notes)',
-  tab: '<strong class="text-purple-400">Browser Tab:</strong> Captures <strong>both your voice AND the meeting audio</strong> from a browser tab (perfect for Google Meet, Teams web, Zoom web meetings). Records everything you say and hear!',
-  system: '<strong class="text-green-400">System Audio:</strong> Captures <strong>both your voice AND all system audio</strong> from your screen (works with desktop apps like Zoom, Teams, Skype). Records your voice plus everything from the app!'
+  microphone: '<strong class="text-blue-400">Microphone:</strong> Records from your microphone (for in-person meetings or voice notes). <span class="text-gray-400">No screen share indicator.</span>',
+  tab: '<strong class="text-purple-400">Browser Tab:</strong> Captures <strong>both your voice AND the meeting audio</strong> from a browser tab (perfect for Google Meet, Teams web, Zoom web meetings). <span class="text-red-400">⚠️ WARNING: This will show a screen-sharing indicator to all meeting participants.</span> For discreet recording, use System Audio instead or set up audio loopback software.',
+  system: '<strong class="text-green-400">System Audio (Recommended for Meetings):</strong> Captures <strong>both your voice AND all system audio</strong> from your screen (works with desktop apps like Zoom, Teams, Skype). <span class="text-green-400">✓ More discreet - shows "presenting" but no prominent screen share preview.</span> Records your voice plus everything from the app!'
 };
 
 micSourceBtn.addEventListener('click', () => {
@@ -111,6 +111,21 @@ async function startRecording() {
       // Standard microphone recording
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } else if (audioSource === 'tab') {
+      // Show warning about screen share indicator
+      const confirmRecording = confirm(
+        '⚠️ PRIVACY WARNING\n\n' +
+        'Browser Tab recording will display a screen-sharing indicator to ALL meeting participants.\n\n' +
+        'Everyone in the meeting will see that you are sharing/recording.\n\n' +
+        'For more discreet recording:\n' +
+        '• Use "System Audio" option instead (shows "presenting" but less obvious)\n' +
+        '• Or set up audio loopback software with "Microphone" option\n\n' +
+        'Do you want to continue with Browser Tab recording?'
+      );
+      
+      if (!confirmRecording) {
+        return; // User cancelled
+      }
+      
       // Tab audio capture + microphone - MIXED AUDIO
       
       // Get microphone stream

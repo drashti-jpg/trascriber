@@ -392,8 +392,8 @@ app.get('/', (c) => {
                         </svg>
                       </div>
                       <div class="text-center">
-                        <div class="font-semibold text-white text-sm mb-1">Browser Tab</div>
-                        <div class="text-xs text-gray-400">Your voice + tab audio</div>
+                        <div class="font-semibold text-white text-sm mb-1">Browser Tab ⚠️</div>
+                        <div class="text-xs text-red-400">Shows screen share</div>
                       </div>
                     </div>
                   </button>
@@ -406,8 +406,8 @@ app.get('/', (c) => {
                         </svg>
                       </div>
                       <div class="text-center">
-                        <div class="font-semibold text-white text-sm mb-1">System Audio</div>
-                        <div class="text-xs text-gray-400">Your voice + system</div>
+                        <div class="font-semibold text-white text-sm mb-1">System Audio ✓</div>
+                        <div class="text-xs text-green-400">More discreet</div>
                       </div>
                     </div>
                   </button>
