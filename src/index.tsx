@@ -413,6 +413,27 @@ app.get('/', (c) => {
                   </button>
                 </div>
                 
+                {/* Private Recording Extension Notice */}
+                <div class="mt-4 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30">
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <div class="text-sm">
+                      <div class="font-bold text-purple-300 mb-1">🔒 Want TRULY Private Recording?</div>
+                      <div class="text-gray-300 mb-2">
+                        Use our <strong>Chrome Extension</strong> for recording with <strong>NO screen share indicator</strong> visible to meeting participants!
+                      </div>
+                      <a href="/static/meeting-recorder-extension.zip" download class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-all">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download Extension (10 KB)
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
                 {/* Help Text */}
                 <div class="mt-4 p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
                   <div class="flex items-start space-x-3">
